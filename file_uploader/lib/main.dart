@@ -91,10 +91,6 @@ class _MyHomePageState extends State<MyHomePage> {
         server.port.toString());
     var request =
         http.MultipartRequest("POST", Uri.parse('http://0.0.0.0:8080'));
-    request.files.add(await http.MultipartFile.fromPath('picture', fileName));
-    request.send().then((response) {
-      if (response.statusCode == 200) print("Uploaded!");
-    });
 
     await for (var req in server) {
       File currentFile = new File(fileName);
@@ -106,10 +102,12 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
     setState(() {
-      print("Server running on IP : " +
-          server.address.toString() +
-          " On Port : " +
-          server.port.toString());
+      if (server.serverHeader != null) {
+        print("Server running on IP : " +
+            server.address.toString() +
+            " On Port : " +
+            server.port.toString());
+      }
     });
   }
 
@@ -141,31 +139,6 @@ Once you press ok, the image will no longer be accessable.'''),
               ],
             );
           });
-        }
-        // builder: (context) => AlertDialog(
-        //       title: const Text('Your files are uploaded!'),
-        //       content: Text('''Access them on $address:8080
-        //       Once you press ok, the image will no longer be accessable.'''),
-        //       actions: <Widget>[
-        //         TextButton(
-        //           onPressed: () {
-        //             server.close();
-        //             listFiles.clear();
-        //             Navigator.pop(context);
-        //           },
-        //           child: const Text("OK"),
-        //         )
-        //       ],
-        //     )
-        );
+        });
   }
 }
-
-// startServer() async {
-//   var server = await HttpServer.bind("localhost", 8080);
-//   print(server.address);
-//   await server.forEach((HttpRequest request) {
-//     request.response.write('Hello, world!');
-//     request.response.close();
-//   });
-// }
