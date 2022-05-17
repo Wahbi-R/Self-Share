@@ -48,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text("Choose file(s)"),
                 onPressed: () async {
                   FilePickerResult? result =
-                      await FilePicker.platform.pickFiles();
+                      await FilePicker.platform.pickFiles(type: FileType.media);
                   if (result == null) {
                     return;
                   } else {
@@ -127,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return AlertDialog(
               title: const Text('Your files are uploaded!'),
               content: Text('''Access them on $address:8080
-              Once you press ok, the image will no longer be accessable.'''),
+Once you press ok, the image will no longer be accessable.'''),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
