@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   runApp(const MyApp());
@@ -47,13 +47,24 @@ class _MyHomePageState extends State<MyHomePage> {
               TextButton(
                 child: const Text("Choose file(s)"),
                 onPressed: () async {
-                  FilePickerResult? result =
-                      await FilePicker.platform.pickFiles(type: FileType.media);
+                  FilePickerResult? result;
+                  if (Platform.isIOS) {
+                    result = await FilePicker.platform
+                        .pickFiles(type: FileType.any, allowMultiple: true);
+                  } else {
+                    result = await FilePicker.platform
+                        .pickFiles(type: FileType.any, allowMultiple: true);
+                  }
+
                   if (result == null) {
                     return;
                   } else {
                     setState(() {
-                      listFiles = result.files;
+                      for (int i = 0; i < result!.count; i++) {
+                        listFiles.add(result.files[i]);
+                      }
+                      print("path: " + listFiles[0].name);
+                      print("extension: " + p.extension(listFiles[0].path!));
                     });
                   }
                 },
@@ -61,20 +72,109 @@ class _MyHomePageState extends State<MyHomePage> {
                     backgroundColor:
                         MaterialStateProperty.all(Colors.grey[300])),
               ),
+              if (Platform.isIOS)
+                TextButton(
+                  child: const Text("Choose image(s)"),
+                  onPressed: () async {
+                    FilePickerResult? result;
+                    result = await FilePicker.platform
+                        .pickFiles(type: FileType.media, allowMultiple: true);
+
+                    if (result == null) {
+                      return;
+                    } else {
+                      setState(() {
+                        for (int i = 0; i < result!.count; i++) {
+                          listFiles.add(result.files[i]);
+                        }
+                        print("path: " + listFiles[0].name);
+                        print("extension: " + p.extension(listFiles[0].path!));
+                      });
+                    }
+                  },
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(Colors.grey[300])),
+                ),
               Expanded(
                 child: ListView.builder(
                     itemCount: listFiles.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: Image.file(File(listFiles[index].path!)),
-                      );
+                      if (p.extension(listFiles[index].path!) == ".jpeg" ||
+                          p.extension(listFiles[index].path!) == ".png" ||
+                          p.extension(listFiles[index].path!) == ".gif" ||
+                          p.extension(listFiles[index].path!) == ".jpg") {
+                        return ListTile(
+                          leading: Image.file(File(listFiles[index].path!)),
+                          onTap: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text("Delete this file?"),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text("No"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: const Text("Yes"),
+                                        onPressed: () {
+                                          setState(() {
+                                            listFiles.removeAt(index);
+                                          });
+
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ],
+                                  );
+                                });
+                          },
+                        );
+                      } else {
+                        return ListTile(
+                          title: Text(listFiles[index].name),
+                          onTap: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text("Delete this file?"),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text("No"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: const Text("Yes"),
+                                        onPressed: () {
+                                          setState(() {
+                                            listFiles.removeAt(index);
+                                          });
+
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ],
+                                  );
+                                });
+                          },
+                        );
+                      }
                     }),
               ),
               TextButton(
                 child: const Text("Upload file(s)"),
                 onPressed: () {
-                  startServer(listFiles[0].path!);
-                  successDialog();
+                  if (listFiles.isNotEmpty) {
+                    startServer(listFiles[0].path!);
+                    successDialog();
+                  }
                 },
                 style: ButtonStyle(
                     backgroundColor:
@@ -89,18 +189,65 @@ class _MyHomePageState extends State<MyHomePage> {
         server.address.toString() +
         " On Port : " +
         server.port.toString());
-    var request =
-        http.MultipartRequest("POST", Uri.parse('http://0.0.0.0:8080'));
+//     var request =
+//         http.MultipartRequest("POST", Uri.parse('http://0.0.0.0:8080'));
+// var pic = await http.MultipartFile.fromPath("file_field", listFiles[0].path!);
+//    //add multipart to request
+//    request.files.add(pic);
+//    var response = await request.send();
+//    var responseData = await response.stream.toBytes();
+//    var responseString = String.fromCharCodes(responseData);
+//    print(responseString);
 
-    await for (var req in server) {
-      File currentFile = new File(fileName);
-      currentFile.readAsBytes().then((raw) {
-        req.response.headers.set('Content-Type', 'image/jpeg');
-        req.response.headers.set('Content-Length', raw.length);
-        req.response.add(raw);
-        req.response.close();
+    // await for (var req in server) {
+    //   File currentFile = new File(fileName);
+    //   currentFile.readAsBytes().then((raw) {
+    //     req.response.headers.set('Content-Type', 'image/jpeg');
+    //     req.response.headers.set('Content-Length', raw.length);
+    //     req.response.add(raw);
+    //     req.response.close();
+    //   });
+    // }
+
+    server.listen((request) async {
+      // Strip leading forward slash
+      final uri = request.uri.path.substring(1);
+
+      if (uri == "") {
+        request.response.statusCode = 404;
+        request.response.headers.set('Content-Type', 'text/html');
+        for (int i = 0; i < listFiles.length; i++) {
+          request.response.write('<a href="/$i">${listFiles[i].name}</a> <br>');
+        }
+        await request.response.close();
+        return; // prob a bad idea
+      }
+
+      int? fileNum = int.tryParse(uri);
+      if (fileNum == null) {
+        request.response.statusCode = 400;
+        request.response.write("File $uri does not exist.");
+        await request.response.close();
+        return;
+      }
+      final fileAtIndex = listFiles[fileNum];
+      final actualFile = File(fileAtIndex.path!);
+      request.response.headers
+          .set("Content-Disposition", "filename=\"${fileAtIndex.name}\"");
+      request.response.headers.contentLength = await actualFile.length();
+      // Assume file is jpeg if there is no extension
+
+      request.response.headers.contentType =
+          ContentType("image", fileAtIndex.extension ?? "jpeg");
+
+      // Better way to do it, read as stream
+      var stream = actualFile.openRead();
+      await stream.forEach((byte) {
+        request.response.add(byte);
       });
-    }
+      await request.response.flush();
+      await request.response.close();
+    });
     setState(() {
       if (server.serverHeader != null) {
         print("Server running on IP : " +
@@ -113,6 +260,29 @@ class _MyHomePageState extends State<MyHomePage> {
 
   resetPage() {
     setState(() {});
+  }
+
+  failureDialog() {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Please select a file before uploading!'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    server.close();
+                    listFiles.clear();
+                    Navigator.pop(context);
+                    resetPage();
+                  },
+                  child: const Text("OK"),
+                )
+              ],
+            );
+          });
+        });
   }
 
   successDialog() async {
