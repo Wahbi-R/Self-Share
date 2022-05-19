@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:path/path.dart' as p;
 
+import 'receive.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -38,6 +40,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.cloud_upload_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ReceivePage()),
+              );
+            },
+          ),
           title: const Text("Choose images to send"),
         ),
         body: Column(
@@ -189,25 +200,6 @@ class _MyHomePageState extends State<MyHomePage> {
         server.address.toString() +
         " On Port : " +
         server.port.toString());
-//     var request =
-//         http.MultipartRequest("POST", Uri.parse('http://0.0.0.0:8080'));
-// var pic = await http.MultipartFile.fromPath("file_field", listFiles[0].path!);
-//    //add multipart to request
-//    request.files.add(pic);
-//    var response = await request.send();
-//    var responseData = await response.stream.toBytes();
-//    var responseString = String.fromCharCodes(responseData);
-//    print(responseString);
-
-    // await for (var req in server) {
-    //   File currentFile = new File(fileName);
-    //   currentFile.readAsBytes().then((raw) {
-    //     req.response.headers.set('Content-Type', 'image/jpeg');
-    //     req.response.headers.set('Content-Length', raw.length);
-    //     req.response.add(raw);
-    //     req.response.close();
-    //   });
-    // }
 
     server.listen((request) async {
       // Strip leading forward slash
