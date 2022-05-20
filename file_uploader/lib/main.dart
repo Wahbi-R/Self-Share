@@ -40,15 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.cloud_upload_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ReceivePage()),
-              );
-            },
-          ),
+          leading: const Icon(Icons.cloud_upload_outlined),
           title: const Text("Choose images to send"),
         ),
         body: Column(

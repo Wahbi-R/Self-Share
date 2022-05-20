@@ -43,11 +43,11 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.file_uploader"
+        applicationId "com.wahbi.self_share"
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        versionName "1.1"
     }
 
     buildTypes {
